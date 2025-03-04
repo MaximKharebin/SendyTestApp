@@ -1,5 +1,6 @@
-package com.wynndie.sendytestapp.presentation
+package com.wynndie.sendytestapp.presentation.phone
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,17 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -28,37 +28,35 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wynndie.sendytestapp.R
+import com.wynndie.sendytestapp.presentation.components.LoadingButton
 import com.wynndie.sendytestapp.presentation.model.InputField
 import com.wynndie.sendytestapp.presentation.theme.SendyTestAppTheme
 import land.sendy.pfe_sdk.api.API
 
 @Composable
 fun PhoneScreenRoot(
-    navigateToCodeScreen: () -> Unit,
+    navigateToTokenScreen: () -> Unit,
     api: API,
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = AuthViewModel()
+    viewModel: PhoneViewModel = viewModel()
 ) {
     val context = LocalContext.current
     PhoneScreen(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
-
         phoneInputField = viewModel.phoneInputField.collectAsStateWithLifecycle().value,
         onPhoneValueChange = { viewModel.onPhoneValueChange(it) },
-
         areTermsAccepted = viewModel.areTermsAccepted.collectAsStateWithLifecycle().value,
         onTermsAcceptanceChange = { viewModel.onTermsAcceptanceChange(it) },
-
         canVerifyPhone = viewModel.canVerifyPhone.collectAsStateWithLifecycle().value,
         onVerifyPhone = {
             viewModel.verifyPhone(
                 context = context,
                 api = api,
-                navigateToTokenScreen = navigateToCodeScreen
+                navigateToTokenScreen = navigateToTokenScreen
             )
         },
-
         modifier = modifier
     )
 }
@@ -66,16 +64,12 @@ fun PhoneScreenRoot(
 @Composable
 private fun PhoneScreen(
     isLoading: Boolean,
-
     phoneInputField: InputField,
     onPhoneValueChange: (String) -> Unit,
-
     areTermsAccepted: Boolean,
     onTermsAcceptanceChange: (Boolean) -> Unit,
-
     canVerifyPhone: Boolean,
     onVerifyPhone: () -> Unit,
-
     modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -117,30 +111,33 @@ private fun PhoneScreen(
         Spacer(Modifier.height(8.dp))
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .clickable { onTermsAcceptanceChange(!areTermsAccepted) }
+                .padding(end = 8.dp)
         ) {
             Checkbox(
                 checked = areTermsAccepted,
+                enabled = !isLoading,
                 onCheckedChange = { onTermsAcceptanceChange(it) }
             )
             Text(text = stringResource(R.string.accept_terms_of_use))
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(32.dp))
 
-        Button(
+        LoadingButton(
             onClick = {
                 keyboardController?.hide()
                 focusManager.clearFocus(true)
                 onVerifyPhone()
             },
-            enabled = canVerifyPhone && !isLoading
+            enabled = canVerifyPhone && !isLoading,
+            isLoading = isLoading,
+            modifier = Modifier
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            } else {
-                Text(text = stringResource(R.string.next))
-            }
+            Text(text = stringResource(R.string.next))
         }
     }
 }

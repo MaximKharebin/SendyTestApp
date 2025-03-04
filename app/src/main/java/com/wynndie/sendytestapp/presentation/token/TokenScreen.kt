@@ -1,4 +1,4 @@
-package com.wynndie.sendytestapp.presentation
+package com.wynndie.sendytestapp.presentation.token
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,10 +25,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wynndie.sendytestapp.R
+import com.wynndie.sendytestapp.presentation.components.LoadingButton
 import com.wynndie.sendytestapp.presentation.model.InputField
+import com.wynndie.sendytestapp.presentation.model.TokenType
 import com.wynndie.sendytestapp.presentation.theme.SendyTestAppTheme
-import com.wynndie.sendytestapp.presentation.util.TokenType
 import land.sendy.pfe_sdk.api.API
 
 @Composable
@@ -37,14 +38,16 @@ fun TokenScreenRoot(
     navigateBack: () -> Unit,
     api: API,
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = AuthViewModel()
+    viewModel: TokenViewModel = viewModel()
 ) {
     val context = LocalContext.current
     TokenScreen(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         tokenInputField = viewModel.tokenInputField.collectAsStateWithLifecycle().value,
         tokenType = viewModel.tokenType.collectAsStateWithLifecycle().value,
-        onTokenValueChange = { viewModel.onTokenValueChange(it, context, api) },
+        onTokenValueChange = { viewModel.onTokenValueChange(it) },
+        canVerifyToken = viewModel.canVerifyToken.collectAsStateWithLifecycle().value,
+        onVerifyToken = { viewModel.verifyToken(context = context, api = api) },
         navigateBack = navigateBack,
         modifier = modifier
     )
@@ -56,6 +59,8 @@ private fun TokenScreen(
     tokenInputField: InputField,
     tokenType: TokenType,
     onTokenValueChange: (String) -> Unit,
+    canVerifyToken: Boolean,
+    onVerifyToken: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -63,14 +68,8 @@ private fun TokenScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-    if (isLoading) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            CircularProgressIndicator()
-        }
-    } else if (tokenInputField.supportingText != null && tokenInputField.isError == false) {
+
+    if (tokenInputField.supportingText != null && tokenInputField.isError == false) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
@@ -104,6 +103,7 @@ private fun TokenScreen(
                     )
                 },
                 singleLine = true,
+                enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
@@ -119,7 +119,24 @@ private fun TokenScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            TextButton(onClick = navigateBack) {
+            LoadingButton(
+                onClick = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus(true)
+                    onVerifyToken()
+                },
+                enabled = canVerifyToken && !isLoading,
+                isLoading = isLoading,
+                modifier = Modifier
+            ) {
+                Text(text = stringResource(R.string.next))
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            TextButton(
+                onClick = navigateBack
+            ) {
                 Text(text = stringResource(R.string.change_phone))
             }
         }
@@ -136,7 +153,9 @@ private fun TokenScreenPreview() {
             tokenType = TokenType.SMS,
             onTokenValueChange = {},
             navigateBack = {},
-            modifier = Modifier
+            modifier = Modifier,
+            canVerifyToken = true,
+            onVerifyToken = { }
         )
     }
 }
