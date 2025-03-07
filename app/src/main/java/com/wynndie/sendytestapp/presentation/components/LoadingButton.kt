@@ -1,7 +1,9 @@
 package com.wynndie.sendytestapp.presentation.components
 
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -19,7 +21,8 @@ fun LoadingButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier
+        shape = RoundedCornerShape(4.dp),
+        modifier = modifier.height(56.dp)
     ) {
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp))

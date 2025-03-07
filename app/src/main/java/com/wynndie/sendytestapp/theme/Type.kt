@@ -1,4 +1,4 @@
-package com.wynndie.sendytestapp.presentation.theme
+package com.wynndie.sendytestapp.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

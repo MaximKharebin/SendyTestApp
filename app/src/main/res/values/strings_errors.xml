@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_internet">Отсутствует подключение к интернету</string>
+    <string name="incorrect_phone">Неправильно набран номер</string>
+    <string name="incorrect_token">Неверный код из СМС</string>
+    <string name="unknown_error">Неизвестная ошибка. %1$s</string>
+</resources>

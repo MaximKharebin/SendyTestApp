@@ -1,4 +1,4 @@
-package com.wynndie.sendytestapp.presentation.theme
+package com.wynndie.sendytestapp.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

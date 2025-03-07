@@ -15,9 +15,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.wynndie.sendytestapp.presentation.phone.PhoneScreenRoot
-import com.wynndie.sendytestapp.presentation.theme.SendyTestAppTheme
 import com.wynndie.sendytestapp.presentation.token.TokenScreenRoot
 import com.wynndie.sendytestapp.presentation.util.Route
+import com.wynndie.sendytestapp.theme.SendyTestAppTheme
 import land.sendy.pfe_sdk.activies.MasterActivity
 import land.sendy.pfe_sdk.api.API
 
@@ -42,8 +42,8 @@ class MainActivity : MasterActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     MainActivityScreen(
-                        navController = navController,
                         api = api,
+                        navController = navController,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -54,8 +54,8 @@ class MainActivity : MasterActivity() {
 
 @Composable
 fun MainActivityScreen(
-    navController: NavHostController,
     api: API,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -67,23 +67,15 @@ fun MainActivityScreen(
         ) {
             composable<Route.PhoneScreen> {
                 PhoneScreenRoot(
-                    navigateToTokenScreen = {
-                        navController.navigate(Route.TokenScreen) {
-                            popUpTo<Route.PhoneScreen> { inclusive = true }
-                        }
-                    },
                     api = api,
+                    navigateNext = { navController.navigate(Route.TokenScreen) },
                     modifier = modifier
                 )
             }
             composable<Route.TokenScreen> {
                 TokenScreenRoot(
-                    navigateBack = {
-                        navController.navigate(Route.PhoneScreen) {
-                            popUpTo<Route.TokenScreen> { inclusive = true }
-                        }
-                    },
                     api = api,
+                    navigateBack = { navController.navigateUp() },
                     modifier = modifier
                 )
             }

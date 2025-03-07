@@ -1,6 +1,7 @@
 package com.wynndie.sendytestapp.presentation.phone
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,15 +14,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,38 +32,49 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.wynndie.sendytestapp.App
 import com.wynndie.sendytestapp.R
 import com.wynndie.sendytestapp.presentation.components.LoadingButton
 import com.wynndie.sendytestapp.presentation.model.InputField
-import com.wynndie.sendytestapp.presentation.theme.SendyTestAppTheme
+import com.wynndie.sendytestapp.presentation.util.PhoneVisualTransformation
+import com.wynndie.sendytestapp.presentation.util.viewModelFactory
+import com.wynndie.sendytestapp.theme.SendyTestAppTheme
 import land.sendy.pfe_sdk.api.API
 
 @Composable
 fun PhoneScreenRoot(
-    navigateToTokenScreen: () -> Unit,
     api: API,
+    navigateNext: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PhoneViewModel = viewModel()
+    viewModel: PhoneViewModel = viewModel(
+        factory = viewModelFactory {
+            PhoneViewModel(
+                validatePhone = App.appModule.validatePhone,
+                makePhoneApiCall = App.appModule.makePhoneApiCall
+            )
+        }
+    )
 ) {
     val context = LocalContext.current
     PhoneScreen(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         phoneInputField = viewModel.phoneInputField.collectAsStateWithLifecycle().value,
-        onPhoneValueChange = { viewModel.onPhoneValueChange(it) },
         areTermsAccepted = viewModel.areTermsAccepted.collectAsStateWithLifecycle().value,
-        onTermsAcceptanceChange = { viewModel.onTermsAcceptanceChange(it) },
         canVerifyPhone = viewModel.canVerifyPhone.collectAsStateWithLifecycle().value,
+        onPhoneValueChange = { viewModel.onPhoneValueChange(it) },
+        onTermsAcceptanceChange = { viewModel.onTermsAcceptanceChange(it) },
         onVerifyPhone = {
             viewModel.verifyPhone(
                 context = context,
                 api = api,
-                navigateToTokenScreen = navigateToTokenScreen
+                navigateNext = navigateNext
             )
         },
         modifier = modifier
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PhoneScreen(
     isLoading: Boolean,
@@ -72,7 +86,6 @@ private fun PhoneScreen(
     onVerifyPhone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
     Column(
@@ -81,7 +94,11 @@ private fun PhoneScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
     ) {
+
         OutlinedTextField(
             value = phoneInputField.value,
             onValueChange = { onPhoneValueChange(it) },
@@ -100,21 +117,25 @@ private fun PhoneScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                    focusManager.clearFocus(true)
-                }
+                onDone = { focusManager.clearFocus(true) }
             ),
+            visualTransformation = PhoneVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clip(RoundedCornerShape(4.dp))
-                .clickable { onTermsAcceptanceChange(!areTermsAccepted) }
+                .then(
+                    if (!isLoading) {
+                        Modifier.clickable { onTermsAcceptanceChange(!areTermsAccepted) }
+                    } else {
+                        Modifier
+                    }
+                )
                 .padding(end = 8.dp)
         ) {
             Checkbox(
@@ -125,17 +146,16 @@ private fun PhoneScreen(
             Text(text = stringResource(R.string.accept_terms_of_use))
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
 
         LoadingButton(
             onClick = {
-                keyboardController?.hide()
                 focusManager.clearFocus(true)
                 onVerifyPhone()
             },
-            enabled = canVerifyPhone && !isLoading,
+            enabled = canVerifyPhone,
             isLoading = isLoading,
-            modifier = Modifier
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = stringResource(R.string.next))
         }
@@ -148,16 +168,12 @@ private fun PhoneScreenPreview() {
     SendyTestAppTheme {
         PhoneScreen(
             isLoading = false,
-
             phoneInputField = InputField(),
             onPhoneValueChange = {},
-
             areTermsAccepted = false,
             onTermsAcceptanceChange = {},
-
             canVerifyPhone = false,
             onVerifyPhone = {},
-
             modifier = Modifier
         )
     }

@@ -1,7 +1,7 @@
 package com.wynndie.sendytestapp.presentation.token
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +16,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -26,28 +26,40 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.wynndie.sendytestapp.App
 import com.wynndie.sendytestapp.R
 import com.wynndie.sendytestapp.presentation.components.LoadingButton
 import com.wynndie.sendytestapp.presentation.model.InputField
-import com.wynndie.sendytestapp.presentation.model.TokenType
-import com.wynndie.sendytestapp.presentation.theme.SendyTestAppTheme
+import com.wynndie.sendytestapp.presentation.util.viewModelFactory
+import com.wynndie.sendytestapp.theme.SendyTestAppTheme
 import land.sendy.pfe_sdk.api.API
 
 @Composable
 fun TokenScreenRoot(
-    navigateBack: () -> Unit,
     api: API,
+    navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TokenViewModel = viewModel()
+    viewModel: TokenViewModel = viewModel(
+        factory = viewModelFactory {
+            TokenViewModel(
+                validateToken = App.appModule.validateToken,
+                makeTokenApiCall = App.appModule.makeTokenApiCall
+            )
+        }
+    )
 ) {
     val context = LocalContext.current
     TokenScreen(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         tokenInputField = viewModel.tokenInputField.collectAsStateWithLifecycle().value,
-        tokenType = viewModel.tokenType.collectAsStateWithLifecycle().value,
         onTokenValueChange = { viewModel.onTokenValueChange(it) },
         canVerifyToken = viewModel.canVerifyToken.collectAsStateWithLifecycle().value,
-        onVerifyToken = { viewModel.verifyToken(context = context, api = api) },
+        onVerifyToken = {
+            viewModel.verifyToken(
+                context = context,
+                api = api
+            )
+        },
         navigateBack = navigateBack,
         modifier = modifier
     )
@@ -57,34 +69,27 @@ fun TokenScreenRoot(
 private fun TokenScreen(
     isLoading: Boolean,
     tokenInputField: InputField,
-    tokenType: TokenType,
     onTokenValueChange: (String) -> Unit,
     canVerifyToken: Boolean,
     onVerifyToken: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-
-    if (tokenInputField.supportingText != null && tokenInputField.isError == false) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = tokenInputField.supportingText.asString())
-        }
-    } else {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
+    ) {
+        if (tokenInputField.supportingText != null && tokenInputField.isError == false) {
+            Text(text = stringResource(R.string.auth_succeed))
+        } else {
             OutlinedTextField(
                 value = tokenInputField.value,
                 onValueChange = { onTokenValueChange(it) },
@@ -95,12 +100,7 @@ private fun TokenScreen(
                 },
                 isError = tokenInputField.isError,
                 label = {
-                    Text(
-                        text = when (tokenType) {
-                            TokenType.SMS -> stringResource(R.string.enter_token_from_sms)
-                            TokenType.EMAIL -> stringResource(R.string.enter_token_from_email)
-                        }
-                    )
+                    Text(text = stringResource(R.string.enter_token_from_sms))
                 },
                 singleLine = true,
                 enabled = !isLoading,
@@ -109,10 +109,7 @@ private fun TokenScreen(
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = {
-                        keyboardController?.hide()
-                        focusManager.clearFocus(true)
-                    }
+                    onDone = { focusManager.clearFocus(true) }
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -121,38 +118,37 @@ private fun TokenScreen(
 
             LoadingButton(
                 onClick = {
-                    keyboardController?.hide()
                     focusManager.clearFocus(true)
                     onVerifyToken()
                 },
                 enabled = canVerifyToken && !isLoading,
                 isLoading = isLoading,
-                modifier = Modifier
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.next))
             }
-
-            Spacer(Modifier.height(16.dp))
-
-            TextButton(
-                onClick = navigateBack
-            ) {
-                Text(text = stringResource(R.string.change_phone))
-            }
         }
+
+        Spacer(Modifier.height(32.dp))
+
+        TextButton(
+            onClick = navigateBack
+        ) {
+            Text(text = stringResource(R.string.change_phone))
+        }
+
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun TokenScreenPreview() {
     SendyTestAppTheme {
         TokenScreen(
             isLoading = false,
             tokenInputField = InputField(),
-            tokenType = TokenType.SMS,
-            onTokenValueChange = {},
-            navigateBack = {},
+            onTokenValueChange = { },
+            navigateBack = { },
             modifier = Modifier,
             canVerifyToken = true,
             onVerifyToken = { }
