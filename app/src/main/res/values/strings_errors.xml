@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="request_wasnt_sent">Запрос не был запущен на выполнение</string>
+    <string name="server_returned_null">Сервер не вернул данные</string>
     <string name="no_internet">Отсутствует подключение к интернету</string>
     <string name="incorrect_phone">Неправильно набран номер</string>
     <string name="incorrect_token">Неверный код из СМС</string>

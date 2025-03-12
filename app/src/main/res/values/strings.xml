@@ -1,16 +1,28 @@
 <resources>
-    <string name="app_name">SendyTestApp</string>
-    <string name="accept_terms_of_use">"Я принимаю пользовательское соглашение"</string>
-    <string name="accept">Принять</string>
+    <string name="app_name">Sendy Demo</string>
+
+    <string name="accept">Принимаю</string>
     <string name="next">Продолжить</string>
     <string name="back">Вернуться</string>
+
+    <string name="recover_access">Восстановление доступа</string>
+    <string name="recover_access_info"><![CDATA[Введите ваш номер телефона, и мы пришлём на него код восстановления]]></string>
+    <string name="phone_label">Номер телефона</string>
+    <string name="phone_placeholder">xxx xxx xx xx</string>
+    <string name="accept_terms_of_use">"Я принимаю %1$s"</string>
+    <string name="terms_of_use">"Пользовательское соглашение"</string>
+
+    <string name="confirm_phone">Подтвердите ваш номер</string>
+    <string name="confirm_phone_info"><![CDATA[Введите 6-значный код, который был отправлен вам в SMS]]></string>
+    <string name="token_label">Код из СМС</string>
+    <string name="token_placeholder">xxxxxx</string>
     <string name="change_phone">Изменить номер телефона</string>
-    <string name="enter_phone">Введите номер телефона</string>
-    <string name="enter_token_from_sms">Введите код из СМС</string>
-    <string name="enter_token_from_email">Введите код из почты</string>
-    <string name="phone_country_code">+7</string>
-    <string name="request_wasnt_sent">Запрос не был запущен на выполнение: %1$s</string>
-    <string name="server_returned_null">Сервер не вернул данные</string>
+
     <string name="auth_succeed">Активация прошла успешно!</string>
-    <string name="start_again">Вернуться к началу</string>
+    <string name="start_again">Начать заного</string>
+    <string name="agreement">Cоглашение</string>
+    <string name="failed_load_info">Не удалось загрузить пользовательское соглашение, попробуйте ещё раз!</string>
+    <string name="refresh">Перезагрузить</string>
+    <string name="ok">Понятно</string>
+    <string name="error">Ошибка</string>
 </resources>

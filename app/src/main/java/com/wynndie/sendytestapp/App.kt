@@ -1,6 +1,7 @@
 package com.wynndie.sendytestapp
 
 import android.app.Application
+import com.wynndie.sendytestapp.di.AppModule
 
 class App : Application() {
     companion object {
@@ -9,6 +10,6 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        appModule = AppModule(this)
+        appModule = AppModule()
     }
 }

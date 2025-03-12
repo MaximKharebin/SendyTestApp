@@ -58,6 +58,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation(libs.androidx.material.icons.extended)
 
     implementation(libs.gson)
     implementation(libs.androidx.appcompat)
@@ -68,4 +69,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(files("../sendy_app_sdk.aar"))
+
+    testImplementation(libs.truth)
 }

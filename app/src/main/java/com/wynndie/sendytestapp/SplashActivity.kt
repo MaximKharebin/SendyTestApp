@@ -42,13 +42,13 @@ class SplashActivity : ComponentActivity() {
             }
 
             Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
+                contentAlignment = Alignment.Companion.Center,
+                modifier = Modifier.Companion.fillMaxSize()
             ) {
                 Image(
                     painter = painterResource(R.drawable.logo),
                     contentDescription = stringResource(R.string.app_name),
-                    Modifier.size(256.dp)
+                    Modifier.Companion.size(256.dp)
                 )
             }
         }
