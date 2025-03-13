@@ -1,9 +1,10 @@
 package com.wynndie.sendytestapp.auth.presentation
 
 import android.content.Context
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wynndie.sendytestapp.core.domain.Constants
 import com.wynndie.sendytestapp.auth.domain.FormatPhone
 import com.wynndie.sendytestapp.auth.domain.FormatToken
 import com.wynndie.sendytestapp.auth.domain.MakePhoneApiCall
@@ -12,6 +13,7 @@ import com.wynndie.sendytestapp.auth.domain.MakeTokenApiCall
 import com.wynndie.sendytestapp.auth.domain.ValidatePhone
 import com.wynndie.sendytestapp.auth.domain.ValidateToken
 import com.wynndie.sendytestapp.auth.presentation.model.InputField
+import com.wynndie.sendytestapp.core.domain.Constants
 import com.wynndie.sendytestapp.core.presentation.UiNotificationController
 import com.wynndie.sendytestapp.core.presentation.UiText
 import com.wynndie.sendytestapp.core.presentation.asUiText
@@ -55,10 +57,10 @@ class AuthViewModel(
         phoneInputField,
         areTermsAccepted
     ) { isLoading, phoneInput, areTermsAccepted ->
-        phoneInput.value.length == Constants.PHONE_LENGTH && areTermsAccepted && !isLoading
+        phoneInput.value.text.length == Constants.PHONE_LENGTH && areTermsAccepted && !isLoading
     }.stateIn(
         viewModelScope,
-        SharingStarted.Companion.WhileSubscribed(5000L),
+        SharingStarted.WhileSubscribed(5000L),
         false
     )
 
@@ -73,22 +75,70 @@ class AuthViewModel(
         isLoading,
         tokenInputField,
     ) { isLoading, phoneInput ->
-        phoneInput.value.length == Constants.TOKEN_LENGTH && !isLoading
+        phoneInput.value.text.length == Constants.TOKEN_LENGTH && !isLoading
     }.stateIn(
         viewModelScope,
-        SharingStarted.Companion.WhileSubscribed(5000L),
+        SharingStarted.WhileSubscribed(5000L),
         false
     )
 
 
-    fun onPhoneValueChange(value: String) {
-        val newValue = formatPhone(value)
-        _phoneInputField.update { it.copy(value = newValue) }
+    fun onPhoneValueChange(value: TextFieldValue) {
+        var oldText = phoneInputField.value.value.text
+        var newText = formatPhone(value.text)
+
+        if (value.text.length > Constants.PHONE_LENGTH) {
+            val textDelta = newText.length - oldText.length
+            if (textDelta > 1) {
+                _phoneInputField.update { state ->
+                    state.copy(
+                        value = state.value.copy(
+                            text = newText,
+                            selection = value.selection
+                        )
+                    )
+                }
+            }
+            return
+        }
+
+        _phoneInputField.update { state ->
+            state.copy(
+                value = state.value.copy(
+                    text = newText,
+                    selection = value.selection
+                )
+            )
+        }
     }
 
-    fun onTokenValueChange(value: String) {
-        var newValue = formatToken(value)
-        _tokenInputField.update { it.copy(value = newValue) }
+    fun onTokenValueChange(value: TextFieldValue) {
+        val oldText = tokenInputField.value.value.text
+        var newText = formatToken(value.text)
+
+        if (value.text.length > Constants.TOKEN_LENGTH) {
+            val textDelta = newText.length - oldText.length
+            if (textDelta > 1) {
+                _tokenInputField.update { state ->
+                    state.copy(
+                        value = state.value.copy(
+                            text = newText,
+                            selection = value.selection
+                        )
+                    )
+                }
+            }
+            return
+        }
+
+        _tokenInputField.update { state ->
+            state.copy(
+                value = state.value.copy(
+                    text = newText,
+                    selection = value.selection
+                )
+            )
+        }
     }
 
     fun onTermsAcceptanceChange(value: Boolean) {
@@ -118,7 +168,7 @@ class AuthViewModel(
         if (isLoading.value) return
         _isLoading.update { true }
 
-        val phoneNumber = Constants.COUNTRY_CODE + phoneInputField.value.value
+        val phoneNumber = Constants.COUNTRY_CODE + phoneInputField.value.value.text
         val (result, error) = validatePhone(phoneNumber)
         if (!result) {
             _isLoading.update { false }
@@ -157,7 +207,7 @@ class AuthViewModel(
         if (isTokenLoading.value) return
         _isTokenLoading.update { true }
 
-        val token = tokenInputField.value.value
+        val token = tokenInputField.value.value.text
         val (result, error) = validateToken(token)
         if (!result) {
             _isTokenLoading.update { false }

@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,8 +26,8 @@ import com.wynndie.sendytestapp.theme.SendyDemoTheme
 
 @Composable
 fun TextInputField(
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     enabled: Boolean,
     label: String,
     placeholder: String,
@@ -88,7 +89,7 @@ fun TextInputField(
 private fun TextInputFieldPreview() {
     SendyDemoTheme {
         TextInputField(
-            value = "234234",
+            value = TextFieldValue("234234"),
             onValueChange = {},
             enabled = true,
             label = stringResource(R.string.phone_label),
